@@ -56,7 +56,7 @@ app.use(express.json());
 app.get('/api/health', async (req, res) => {
   try {
     await db.query('SELECT 1');
-    res.json({ status: 'ok', database: 'connected' });
+    res.json({ status: 'ok', database: 'connected', provider: process.env.SUPABASE_DB_URL ? 'supabase' : 'postgres' });
   } catch (err) {
     res.status(500).json({ status: 'error', database: 'disconnected', message: err.message });
   }
