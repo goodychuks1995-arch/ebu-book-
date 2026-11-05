@@ -17,8 +17,11 @@ const pool = new Pool({
 
 pool.on('error', (err) => {
   console.error('Unexpected error on idle PostgreSQL client', err);
-  process.exit(1);
 });
+
+pool.query('SELECT NOW()')
+  .then(() => console.log('Database connected'))
+  .catch((err) => console.error('Database connection failed:', err.message));
 
 module.exports = {
   query: (text, params) => pool.query(text, params),
