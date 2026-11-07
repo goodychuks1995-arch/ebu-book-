@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const db = require('./config/db');
 const { findPaymentByReference, updatePaymentStatus } = require('./models/paymentModel');
 const { createPurchase } = require('./models/purchaseModel');
+app.use('/api/news', require('./routes/newsRoutes'));
 
 const authRoutes = require('./routes/authRoutes');
 const articleRoutes = require('./routes/articleRoutes');
@@ -13,6 +14,7 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const purchaseRoutes = require('./routes/purchaseRoutes');
 const downloadRoutes = require('./routes/downloadRoutes');
 const errorHandler = require('./middleware/errorHandler');
+
 
 const app = express();
 
