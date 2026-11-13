@@ -8,7 +8,8 @@ const { getArticleById } = require('../models/articleModel');
 const { findPurchase } = require('../models/purchaseModel');
 
 // GET /api/downloads/:articleId — returns a short-lived download link if the user owns it
-router.get('/:articleId', requireAuth, async (req, res, next) => {
+// GET /api/downloads/:articleId/view — link for reading in the browser
+router.get('/:articleId/view', requireAuth, async (req, res, next) => {
   try {
     const { articleId } = req.params;
     const article = await getArticleById(articleId);
@@ -18,7 +19,6 @@ router.get('/:articleId', requireAuth, async (req, res, next) => {
       throw err;
     }
 
-    // Free articles skip the ownership check; premium ones require a purchase
     if (article.is_premium) {
       const owns = await findPurchase(req.user.id, articleId);
       if (!owns) {
@@ -28,25 +28,20 @@ router.get('/:articleId', requireAuth, async (req, res, next) => {
       }
     }
 
-    const fileName = `${article.title}${path.extname(article.file_path)}`;
-
     const { data, error } = await supabase.storage
       .from('articles')
-      .createSignedUrl(article.file_path, 60, { download: fileName });
+      .createSignedUrl(article.file_path, 600);
 
     if (error) {
       console.error('Signed URL error:', error.message);
-      const err = new Error('Could not create download link');
+      const err = new Error('Could not open this note');
       err.status = 500;
       throw err;
     }
-
-    await db.query('INSERT INTO downloads (user_id, article_id) VALUES ($1, $2)', [req.user.id, articleId]);
 
     res.json({ url: data.signedUrl });
   } catch (err) {
     next(err);
   }
 });
-
 module.exports = router;
