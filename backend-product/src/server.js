@@ -2,11 +2,10 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const crypto = require('crypto');
-
 const db = require('./config/db');
 const { findPaymentByReference, updatePaymentStatus } = require('./models/paymentModel');
 const { createPurchase } = require('./models/purchaseModel');
-
+const rateLimit = require('express-rate-limit');
 
 const authRoutes = require('./routes/authRoutes');
 const articleRoutes = require('./routes/articleRoutes');
