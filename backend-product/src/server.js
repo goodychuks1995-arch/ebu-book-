@@ -7,6 +7,9 @@ const { findPaymentByReference, updatePaymentStatus } = require('./models/paymen
 const { createPurchase } = require('./models/purchaseModel');
 const rateLimit = require('express-rate-limit');
 
+const app = express();
+
+
 const authRoutes = require('./routes/authRoutes');
 const articleRoutes = require('./routes/articleRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
@@ -14,9 +17,6 @@ const purchaseRoutes = require('./routes/purchaseRoutes');
 const downloadRoutes = require('./routes/downloadRoutes');
 const errorHandler = require('./middleware/errorHandler');
 
-
-
-const app = express();
 
 app.use(cors());
 
@@ -53,6 +53,18 @@ app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), asy
 });
 
 app.use(express.json());
+
+const limiter = (windowMs, limit, error, extra = {}) =>
+  rateLimit({ windowMs, limit, standardHeaders: true, legacyHeaders: false, message: { error }, ...extra });
+
+// Everything under /api: 120 requests a minute per visitor
+app.use('/api', limiter(60 * 1000, 120, 'Too many requests. Please slow down.'));
+
+// Login and signup: 10 failed tries per 15 minutes (successful logins don't count)
+app.use('/api/auth', limiter(15 * 60 * 1000, 10, 'Too many attempts. Try again in 15 minutes.', { skipSuccessfulRequests: true }));
+
+// Downloads and reading: 40 per 10 minutes, so files can't be scraped
+app.use('/api/downloads', limiter(10 * 60 * 1000, 40, 'Too many download requests. Try again shortly.'));
 
 // Health check — also confirms the DB connection is alive
 app.get('/api/health', async (req, res) => {
