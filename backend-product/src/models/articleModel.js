@@ -2,7 +2,7 @@ const db = require('../config/db');
 
 async function getAllArticles() {
   const result = await db.query(
-    `SELECT id, title, slug, description, preview_text, price_kobo, is_premium, created_at
+    `SELECT id, title, slug, description, preview_text, price_kobo, is_premium, created_at, file_path
      FROM articles
      WHERE published = TRUE
      ORDER BY created_at DESC`
